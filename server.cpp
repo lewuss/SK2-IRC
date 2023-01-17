@@ -6,31 +6,65 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <pthread.h>
+#include <map>
+#include <vector>
 
 using namespace std;
 
 const int BUF_SIZE = 100;
 const int MAX_CLIENT = 5;
-
 int clnt_socks[MAX_CLIENT];
 int clnt_cnt = 0;
 pthread_mutex_t mutx;
+vector<vector<int>>channels;
 
 void *handle_clnt(void *arg);
-void send_msg(string msg, int len);
-
+void send_msg(string msg, int len, int active_channel);
 void *handle_clnt(void *arg)
 {
     int clnt_sock = *((int *)arg);
     int str_len = 0;
-    char msg[BUF_SIZE];
-
-    while ((str_len = read(clnt_sock, msg, sizeof(msg))) != 0)
+    char msg_with_cmd[BUF_SIZE];
+    int active_channel = -1;
+    int command;
+    while ((str_len = read(clnt_sock, msg_with_cmd, sizeof(msg_with_cmd))) != 0)
     {
-        cout << "Client message: " << msg << endl;
-        string response = "thanks for the message";
-        write(clnt_sock, response.c_str(), response.length());
-        send_msg(msg, str_len);
+        string tmp(msg_with_cmd);
+        command = stoi(string(1, msg_with_cmd[0]));
+        string msg = tmp.substr(1);
+        switch (command)
+        {
+        case 1:
+        {
+            vector<int>users;
+            users.push_back(clnt_sock);
+            channels.push_back(users);
+            cout<<"created room";
+            break;
+
+        }
+        case 2:
+            active_channel = msg[1]-'0';
+            channels[active_channel].push_back(clnt_sock);
+            cout<<"added user to room"<<active_channel<<clnt_sock;
+            break;
+        case 3:
+            for (int i = 0; i<channels[active_channel].size();i++)
+                {
+                    if (channels[active_channel][i]==clnt_sock) channels[active_channel].erase(channels[active_channel].begin()+i);
+
+                }
+            active_channel = -1;
+            cout<<"room deleted";
+            break;
+        case 4:
+            cout << "Client message: " << msg << " to "<< active_channel <<endl;         
+            send_msg(msg, str_len, active_channel);
+            break;
+        default:
+            break;
+        }
+
     }
 
     // Remove disconnected client
@@ -50,15 +84,16 @@ void *handle_clnt(void *arg)
     return NULL;
 }
 
-void send_msg(string msg, int len)
+void send_msg(string msg, int len, int active_channel)
 {
     pthread_mutex_lock(&mutx);
-    for (int i = 0; i < clnt_cnt; i++)
+    for (int i = 0; i < channels[active_channel].size(); i++)
     {
         write(clnt_socks[i], msg.c_str(), len);
     }
     pthread_mutex_unlock(&mutx);
 }
+
 int main(int argc, char *argv[])
 {
     // Create socket
