@@ -6,6 +6,8 @@ using namespace std;
 int main()
 {
     vector<int> v;
+    vector<vector<int>>channels;
+
     //Insert values 1 to 10
     v.push_back(20);
     v.push_back(10);
@@ -21,5 +23,9 @@ int main()
     for(int i=0;i<v.size(); i++){
         cout << v[i] << " ";
     }
+    vector<int>users;
+    users.push_back(23);
+    channels.push_back(users);
+    cout<<endl<<0-'0'+48;
     return 0;
 }

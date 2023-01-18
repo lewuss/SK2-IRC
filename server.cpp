@@ -44,7 +44,7 @@ void *handle_clnt(void *arg)
 
         }
         case 2:
-            active_channel = msg[1]-'0';
+            active_channel = msg[1]-'0'+48;
             channels[active_channel].push_back(clnt_sock);
             cout<<"added user to room"<<active_channel<<clnt_sock;
             break;
@@ -64,7 +64,6 @@ void *handle_clnt(void *arg)
         default:
             break;
         }
-
     }
 
     // Remove disconnected client
@@ -89,6 +88,7 @@ void send_msg(string msg, int len, int active_channel)
     pthread_mutex_lock(&mutx);
     for (int i = 0; i < channels[active_channel].size(); i++)
     {
+        cout<<channels[active_channel][i]<< " "<< clnt_socks[i]<<" ";
         write(clnt_socks[i], msg.c_str(), len);
     }
     pthread_mutex_unlock(&mutx);
