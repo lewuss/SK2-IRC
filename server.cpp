@@ -4,6 +4,8 @@
 #include <cstdio>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <cstdlib>
+#include <string>
 #include <sys/socket.h>
 #include <pthread.h>
 #include <map>
@@ -24,6 +26,7 @@ void *handle_clnt(void *arg)
 {
     int clnt_sock = *((int *)arg);
     int str_len = 0;
+    int quit = 0;
     char msg_with_cmd[BUF_SIZE];
     int active_channel = -1;
     int command;
@@ -32,6 +35,7 @@ void *handle_clnt(void *arg)
         string tmp(msg_with_cmd);
         command = stoi(string(1, msg_with_cmd[0]));
         string msg = tmp.substr(1);
+        cout<<msg_with_cmd<<" "<<msg<<endl;
         switch (command)
         {
         case 1:
@@ -39,14 +43,22 @@ void *handle_clnt(void *arg)
             vector<int>users;
             users.push_back(clnt_sock);
             channels.push_back(users);
-            cout<<"created room";
+            active_channel = atoi(&msg_with_cmd[1]);
+            cout<<"created room"<<endl;
             break;
 
         }
         case 2:
-            active_channel = msg[1]-'0'+48;
+            for (int i = 0; i<channels.size();i++)
+            {
+                for (int j=0; j<channels[i].size();j++)
+                {
+                    if (channels[i][j]==clnt_sock) channels[i].erase(channels[i].begin()+j); 
+                }
+            }
+            active_channel = atoi(&msg_with_cmd[1]);
             channels[active_channel].push_back(clnt_sock);
-            cout<<"added user to room"<<active_channel<<clnt_sock;
+            cout<<"added user "<<clnt_sock<<"to room "<<active_channel<<endl;
             break;
         case 3:
             for (int i = 0; i<channels[active_channel].size();i++)
@@ -61,9 +73,30 @@ void *handle_clnt(void *arg)
             cout << "Client message: " << msg << " to "<< active_channel <<endl;         
             send_msg(msg, str_len, active_channel);
             break;
+        case 5:
+        {
+            string all_channels = "";
+            for(int i = 0; i<channels.size();i++)
+            {
+                
+                all_channels+=to_string(i);
+                all_channels+=":";
+                all_channels+=to_string(channels[i].size());
+                all_channels+="/";
+                
+            }
+            write(clnt_sock, all_channels.c_str(), all_channels.size());
+            cout<<"sent";
+            break;
+        }
+        case 6:
+            quit = 1;
+
         default:
             break;
         }
+        memset(msg_with_cmd, 0, 100);
+        if (quit) break;
     }
 
     // Remove disconnected client
@@ -77,6 +110,13 @@ void *handle_clnt(void *arg)
             break;
         }
     }
+    for (int i = 0; i<channels.size();i++)
+            {
+                for (int j=0; j<channels[i].size();j++)
+                {
+                    if (channels[i][j]==clnt_sock) channels[i].erase(channels[i].begin()+j); 
+                }
+            }
     clnt_cnt--;
     pthread_mutex_unlock(&mutx);
     close(clnt_sock);
@@ -85,11 +125,11 @@ void *handle_clnt(void *arg)
 
 void send_msg(string msg, int len, int active_channel)
 {
+    msg = '9'+msg;
     pthread_mutex_lock(&mutx);
     for (int i = 0; i < channels[active_channel].size(); i++)
     {
-        cout<<channels[active_channel][i]<< " "<< clnt_socks[i]<<" ";
-        write(clnt_socks[i], msg.c_str(), len);
+        write(channels[active_channel][i], msg.c_str(), len);
     }
     pthread_mutex_unlock(&mutx);
 }
@@ -127,7 +167,7 @@ int main(int argc, char *argv[])
         pthread_t t_id;
         pthread_create(&t_id, NULL, handle_clnt, (void *)&clnt_sock);
         pthread_detach(t_id);
-        cout << "Connected client IP: " << inet_ntoa(clnt_addr.sin_addr) << endl;
+        cout << "Connected client IP: " << inet_ntoa(clnt_addr.sin_addr) << " "<<clnt_sock<<endl;
     }
 
     // Close server socket
