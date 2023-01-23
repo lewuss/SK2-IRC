@@ -1,27 +1,23 @@
-#!/usr/bin/env python3
-"""Script for Tkinter GUI chat client."""
 import time
 from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
 import tkinter
 
-active_room = -1
-
 
 def receive():
     global msg_list
-    while True:
+    while True:  # continuous loop that receives messages
         msg = s.recv(1024).decode()
-        print(f"{msg} - decoded shit")
+        # check if a message is a chat text or a command
         if msg[0] == '9':
             msg_arr = msg.split()
-            if msg_arr[0] == '9/w':
+            if msg_arr[0] == '9/w':  # check if it's a whisper
                 if msg_arr[1] == username:
                     msg_list.insert(tkinter.END, " ".join(msg_arr[2:]))
             else:
-                msg_list.insert(tkinter.END, msg[1:])
+                msg_list.insert(tkinter.END, msg[1:])  # append the message to the message frame
 
-        else:
+        else:  # print out data about the connected to the server clients and rooms
             data = parse_all_rooms(msg)
             label = tkinter.Label(root, text="Available Rooms: ")
             label.pack()
@@ -37,10 +33,11 @@ def receive():
             submit_button.pack()
 
 
-def send(event=None):
+def send():
     global my_msg
     msg = my_msg.get().split()
-    if msg[0]=="/w":
+    # check if a given message is a whisper and if so change the format
+    if msg[0] == "/w":
         sent_msg = f"7{msg[0]} {msg[1]} [DM]{username}: {' '.join(msg[2:])}"
     else:
         sent_msg = f"4{username}: {my_msg.get()}"
@@ -50,19 +47,18 @@ def send(event=None):
 
 
 def add_room(number):
+    # send a command to create a new room
     s.sendall(f"1{number}".encode())
     print("Room Created")
-    for widget in root.winfo_children():
-        widget.destroy()
-    label = tkinter.Label(root, text="Room Succesfully created")
+    clean_window()
+    label = tkinter.Label(root, text="Room Successfully created")
     label.pack()
     time.sleep(0.5)
     create_main_menu()
 
 
-def button1_command():
-    for widget in root.winfo_children():
-        widget.destroy()
+def create_a_room():
+    clean_window()
     label = tkinter.Label(root, text="Give a Number of a Room you wanna create")
     label.pack()
 
@@ -73,32 +69,33 @@ def button1_command():
     submit_button.pack()
 
 
-def parse_all_rooms(str):
+def parse_all_rooms(str):  # decode information about the connected clients and rooms
     return [room.split(":") for room in str.split("/")][:-1]
 
 
 def join_room(number):
     global active_room
+    # join  room with a given number
     s.sendall(f"2{number}".encode())
     active_room = number
-    button3_command()
+    open_chat_window()
 
 
-def button2_command():
-    for widget in root.winfo_children():
-        widget.destroy()
+def get_rooms_info():
+    clean_window()
+    # ask server about the connected clients
     s.sendall("52".encode())
 
 
-def button3_command():
+def open_chat_window():
     global my_msg, msg_list
-    for widget in root.winfo_children():
-        widget.destroy()
+    clean_window()
+
+    # Create a frame that will contain all the messages in the chat
     messages_frame = tkinter.Frame(root)
-    my_msg = tkinter.StringVar()  # For the messages to be sent.
+    my_msg = tkinter.StringVar()
     my_msg.set("")
-    scrollbar = tkinter.Scrollbar(messages_frame)  # To navigate through past messages.
-    # Following will contain the messages.
+    scrollbar = tkinter.Scrollbar(messages_frame)
     msg_list = tkinter.Listbox(messages_frame, height=15, width=50, yscrollcommand=scrollbar.set)
     scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
     msg_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
@@ -107,6 +104,7 @@ def button3_command():
     msg_list.pack()
     messages_frame.pack()
 
+    # create an input text field
     entry_field = tkinter.Entry(root, textvariable=my_msg)
     entry_field.bind("<Return>", send)
     entry_field.pack()
@@ -120,10 +118,10 @@ def button4_command():
     print("Button 4 pressed")
 
 
-def button5_command():
+def change_username():
+    # setup username
     global input_box
-    for widget in root.winfo_children():
-        widget.destroy()
+    clean_window()
     label = tkinter.Label(root, text="Enter username:")
     label.pack()
 
@@ -134,30 +132,36 @@ def button5_command():
     submit_button.pack()
 
 
-def button6_command():
+def quit():
+    # disconnect from the server and close the client
     s.sendall("6".encode())
     root.destroy()
 
 
-def create_main_menu():
+def clean_window():
+    # destroy all objects on the screen
     for widget in root.winfo_children():
         widget.destroy()
-    button1 = tkinter.Button(text="Create a Room", command=button1_command, width=20, height=4)
+
+
+def create_main_menu():
+    clean_window()
+    button1 = tkinter.Button(text="Create a Room", command=create_a_room, width=20, height=4)
     button1.pack()
 
-    button2 = tkinter.Button(text="Join a Room", command=button2_command, width=20, height=4)
+    button2 = tkinter.Button(text="Join a Room", command=get_rooms_info, width=20, height=4)
     button2.pack()
 
-    button3 = tkinter.Button(text="Open chat window", command=button3_command, width=20, height=4)
+    button3 = tkinter.Button(text="Open chat window", command=open_chat_window, width=20, height=4)
     button3.pack()
 
     button4 = tkinter.Button(text="Delete Room", command=button4_command, width=20, height=4)
     button4.pack()
 
-    button5 = tkinter.Button(text="Change username", command=button5_command, width=20, height=4)
+    button5 = tkinter.Button(text="Change username", command=change_username, width=20, height=4)
     button5.pack()
 
-    button6 = tkinter.Button(text="Quit", command=button6_command, width=20, height=4)
+    button6 = tkinter.Button(text="Quit", command=quit, width=20, height=4)
     button6.pack()
 
 
@@ -167,18 +171,25 @@ def on_submit():
     create_main_menu()
 
 
+# default connection
 username = "DEFAULT"
+active_room = -1
+
+# connecting to server
 HOST = "192.168.1.64"
 PORT = 1234
-
 ADDR = (HOST, PORT)
-root = tkinter.Tk()
-root.title("IRC CHAT APP")
-root.geometry("500x500")
 
 s = socket(AF_INET, SOCK_STREAM)
 s.connect(ADDR)
-button5_command()
+
+# create GUI
+root = tkinter.Tk()
+root.title("IRC CHAT APP")
+root.geometry("500x500")
+change_username()
+
+# create listening thread
 receive_thread = Thread(target=receive, daemon=True)
 receive_thread.start()
 tkinter.mainloop()
