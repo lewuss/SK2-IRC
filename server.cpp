@@ -53,7 +53,11 @@ void *handle_clnt(void *arg)
             {
                 for (int j=0; j<channels[i].size();j++)
                 {
+<<<<<<< HEAD
                     if (channels[i][j]==clnt_sock) channels[i].erase(channels[i].begin()+j); 
+=======
+                    if (channels[i][j]==clnt_sock) channels[i].erase(channels[i].begin()+j);
+>>>>>>> 42b399110735114a5652f468d5b1daa059fe1318
                 }
             }
             active_channel = atoi(&msg_with_cmd[1]);
@@ -70,7 +74,7 @@ void *handle_clnt(void *arg)
             cout<<"room deleted";
             break;
         case 4:
-            cout << "Client message: " << msg << " to "<< active_channel <<endl;         
+            cout << "Client message: " << msg << " to "<< active_channel <<endl;
             send_msg(msg, str_len, active_channel);
             break;
         case 5:
@@ -78,12 +82,20 @@ void *handle_clnt(void *arg)
             string all_channels = "";
             for(int i = 0; i<channels.size();i++)
             {
+<<<<<<< HEAD
                 
+=======
+
+>>>>>>> 42b399110735114a5652f468d5b1daa059fe1318
                 all_channels+=to_string(i);
                 all_channels+=":";
                 all_channels+=to_string(channels[i].size());
                 all_channels+="/";
+<<<<<<< HEAD
                 
+=======
+
+>>>>>>> 42b399110735114a5652f468d5b1daa059fe1318
             }
             write(clnt_sock, all_channels.c_str(), all_channels.size());
             cout<<"sent";
@@ -114,7 +126,11 @@ void *handle_clnt(void *arg)
             {
                 for (int j=0; j<channels[i].size();j++)
                 {
+<<<<<<< HEAD
                     if (channels[i][j]==clnt_sock) channels[i].erase(channels[i].begin()+j); 
+=======
+                    if (channels[i][j]==clnt_sock) channels[i].erase(channels[i].begin()+j);
+>>>>>>> 42b399110735114a5652f468d5b1daa059fe1318
                 }
             }
     clnt_cnt--;
