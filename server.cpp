@@ -68,6 +68,7 @@ void *handle_clnt(void *arg) //main function that handles every client connectio
             cout<<"added user "<<clnt_sock<<"to room "<<active_channel<<endl;
             break;
         case 3: //leave a channel
+        {
             int left_channel = atoi(&msg_with_cmd[1]);
             if (left_channel == active_channel)
             {
@@ -80,6 +81,7 @@ void *handle_clnt(void *arg) //main function that handles every client connectio
             cout<<"room left";
             }
             break;
+        }
         case 4: //send a message to a room user's currently in
             cout << "Client message: " << msg << " to "<< active_channel <<endl;         
             send_msg(msg, str_len, active_channel);
