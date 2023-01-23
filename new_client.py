@@ -14,7 +14,13 @@ def receive():
         msg = s.recv(1024).decode()
         print(f"{msg} - decoded shit")
         if msg[0] == '9':
-            msg_list.insert(tkinter.END, msg[1:])
+            msg_arr = msg.split()
+            if msg_arr[0] == '9/w':
+                if msg_arr[1] == username:
+                    msg_list.insert(tkinter.END, " ".join(msg_arr[2:]))
+            else:
+                msg_list.insert(tkinter.END, msg[1:])
+
         else:
             data = parse_all_rooms(msg)
             label = tkinter.Label(root, text="Available Rooms: ")
@@ -33,10 +39,14 @@ def receive():
 
 def send(event=None):
     global my_msg
-    msg = f"4{username}: {my_msg.get()}"
-    print(msg)
+    msg = my_msg.get().split()
+    if msg[0]=="/w":
+        sent_msg = f"7{msg[0]} {msg[1]} [DM]{username}: {' '.join(msg[2:])}"
+    else:
+        sent_msg = f"4{username}: {my_msg.get()}"
+    print(sent_msg)
     my_msg.set("")
-    s.sendall(msg.encode())
+    s.sendall(sent_msg.encode())
 
 
 def add_room(number):
@@ -78,7 +88,6 @@ def button2_command():
     for widget in root.winfo_children():
         widget.destroy()
     s.sendall("52".encode())
-
 
 
 def button3_command():
@@ -127,6 +136,7 @@ def button5_command():
 
 def button6_command():
     s.sendall("6".encode())
+    root.destroy()
 
 
 def create_main_menu():
@@ -147,8 +157,8 @@ def create_main_menu():
     button5 = tkinter.Button(text="Change username", command=button5_command, width=20, height=4)
     button5.pack()
 
-    button5 = tkinter.Button(text="Quit", command=button6_command, width=20, height=4)
-    button5.pack()
+    button6 = tkinter.Button(text="Quit", command=button6_command, width=20, height=4)
+    button6.pack()
 
 
 def on_submit():
