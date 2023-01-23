@@ -67,14 +67,18 @@ void *handle_clnt(void *arg) //main function that handles every client connectio
             channels[active_channel].push_back(clnt_sock);
             cout<<"added user "<<clnt_sock<<"to room "<<active_channel<<endl;
             break;
-        case 3: //delete a channel
+        case 3: //leave a channel
+            int left_channel = atoi(&msg_with_cmd[1]);
+            if (left_channel == active_channel)
+            {
             for (int i = 0; i<channels[active_channel].size();i++)
                 {
                     if (channels[active_channel][i]==clnt_sock) channels[active_channel].erase(channels[active_channel].begin()+i);
 
                 }
             active_channel = -1;
-            cout<<"room deleted";
+            cout<<"room left";
+            }
             break;
         case 4: //send a message to a room user's currently in
             cout << "Client message: " << msg << " to "<< active_channel <<endl;         

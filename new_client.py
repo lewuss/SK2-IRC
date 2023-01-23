@@ -114,9 +114,26 @@ def open_chat_window():
     label.pack()
 
 
-def button4_command():
-    print("Button 4 pressed")
+def leave_room_window():
+    clean_window()
+    label = tkinter.Label(root, text="Give a Number of a Room you wanna leave")
+    label.pack()
 
+    input_box = tkinter.Entry(root)
+    input_box.pack()
+
+    submit_button = tkinter.Button(root, text="Continue", command=lambda: leave_room(input_box.get()))
+    submit_button.pack()
+
+def leave_room(number):
+    # send a command to leave an existing room
+    s.sendall(f"3{number}".encode())
+    print("Room left")
+    clean_window()
+    label = tkinter.Label(root, text="Room Successfully left")
+    label.pack()
+    time.sleep(0.5)
+    create_main_menu()
 
 def change_username():
     # setup username
@@ -155,7 +172,7 @@ def create_main_menu():
     button3 = tkinter.Button(text="Open chat window", command=open_chat_window, width=20, height=4)
     button3.pack()
 
-    button4 = tkinter.Button(text="Delete Room", command=button4_command, width=20, height=4)
+    button4 = tkinter.Button(text="Delete Room", command=leave_room_window, width=20, height=4)
     button4.pack()
 
     button5 = tkinter.Button(text="Change username", command=change_username, width=20, height=4)
