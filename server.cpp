@@ -96,7 +96,12 @@ void *handle_clnt(void *arg)
         }
         case 6:
             quit = 1;
-
+        case 7:
+            msg = '9'+msg;
+            for(int i =0; i<clnt_cnt;i++)
+            {
+                write(clnt_socks[i], msg.c_str(), msg.size());
+            }
         default:
             break;
         }
