@@ -172,7 +172,7 @@ def create_main_menu():
     button3 = tkinter.Button(text="Open chat window", command=open_chat_window, width=20, height=4)
     button3.pack()
 
-    button4 = tkinter.Button(text="Delete Room", command=leave_room_window, width=20, height=4)
+    button4 = tkinter.Button(text="Leave room", command=leave_room_window, width=20, height=4)
     button4.pack()
 
     button5 = tkinter.Button(text="Change username", command=change_username, width=20, height=4)
