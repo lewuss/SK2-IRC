@@ -71,13 +71,14 @@ def join_room(number):
     global active_room
     s.sendall(f"2{number}".encode())
     active_room = number
-    create_main_menu()
+    button3_command()
 
 
 def button2_command():
     for widget in root.winfo_children():
         widget.destroy()
     s.sendall("52".encode())
+
 
 
 def button3_command():
